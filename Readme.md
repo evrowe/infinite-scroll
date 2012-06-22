@@ -28,7 +28,8 @@ $('.selector').infinitescroll({
     isDestroyed: false,
     isDone: false, // For when it goes all the way through the archive.
     isPaused: false,
-    currPage: 1
+    currPage: 1,
+    pagingIncrement: 1 //#EE: this value can usually stay at '1', but needs to change on the fly for ExpressionEngine
   },
   callback: undefined,
   debug: false,
@@ -56,4 +57,8 @@ In addition, you can pause infinite scroll to stop it from triggering, and later
 ```javascript
 $('.selector').infinitescroll('pause');
 $('.selector').infinitescroll('resume');
+```
+Also added in this custom release is a public method for resetting the plugin (useful for AJAX implementations!)
+```javascript
+$('.selector').infinitescroll('reset');
 ```
