@@ -41,7 +41,8 @@
             isDestroyed: false,
             isDone: false, // For when it goes all the way through the archive.
             isPaused: false,
-            currPage: 1
+            currPage: 1,
+            pagingIncrement: 1 //#EE: can usually stay at '1', needs to change on the fly for ExpressionEngine
         },
         callback: undefined,
         debug: false,
@@ -215,11 +216,13 @@
 
                 path = path.match(/^(.*?)2(.*?$)/).slice(1);
 
-            } else if (path.match(/^(.*P)10(\/.*|$)/)) {
-                    path = path.match(/^(.*P)10(\/.*|$)/).slice(1);
+            } else if (path.match(/^(.*?)\/P(.*?$)/)) {
+                    opts.state.pagingIncrement = (path.match(/^(.*?)\/P(.*?$)/).slice(2)).toString();
+                    path = path.match(/^(.*?)\/P(.*?$)/).slice(1,2);
+                    path[0] = path[0]+'/P';
+                    path[1] = '';
                     return path;
-
-                    ////#EE matching for ExpressionEngine's pagination control scheme, 'PXX' where 'XX' is the number of entries by which to offset the page listing
+                    //#EE: path parsing for ExpressionEngine's pagination control scheme, 'PXX' where 'XX' is the number of entries by which to offset the page listing
             } else {
 
                 // page= is used in drupal too but second page is page=1 not page=2:
@@ -514,13 +517,20 @@
                 beginAjax = function infscr_ajax(opts) {
                     
                     // increment the URL bit. e.g. /page/3/
-                    opts.state.currPage+=10; //#EE MODIFIED FROM DEFAULT FOR EE; original: opts.state.currPage++;
+                    //#EE: Added logic to handle custom page incrementing;
+                    instance._debug('opts.state.pagingIncrement: '+opts.state.pagingIncrement);
+                    if (parseInt(opts.state.pagingIncrement) === 1) {
+                        opts.state.currPage++;
+                    } else {
+                        opts.state.currPage+=parseInt(opts.state.pagingIncrement);
+                    }
 
                     instance._debug('heading into ajax', path);
 
                     // if we're dealing with a table we can't use DIVs
                     box = $(opts.contentSelector).is('table') ? $('<tbody/>') : $('<div/>');
 
+                    instance._debug('current page number: '+opts.state.currPage+', current increment value: '+opts.state.pagingIncrement);
                     desturl = path.join(opts.state.currPage);
 
                     method = (opts.dataType == 'html' || opts.dataType == 'json' ) ? opts.dataType : 'html+callback';
